@@ -96,7 +96,8 @@
     }
   }
 
-  .all-movies {
+  .all-animes {
+    margin-top: 2%; 
     @apply space-y-9;
 
     & ul {
@@ -104,7 +105,7 @@
     }
   }
 
-  .movie-card {
+  .anime-card {
     @apply bg-dark-100 p-5 rounded-2xl shadow-inner shadow-light-100/10;
 
     & img {
@@ -116,7 +117,7 @@
     }
 
     & .content {
-      @apply mt-2 flex flex-row items-center flex-wrap gap-2;
+      @apply mt-2 flex flex-row items-center flex-wrap gap-1;
     }
 
     & .rating {
@@ -132,15 +133,11 @@
     }
 
     & .content span {
-      @apply text-sm text-gray-100;
-    }
-
-    & .content .lang {
-      @apply capitalize text-gray-100 font-medium text-base;
+      @apply text-sm text-gray-200;
     }
 
     & .content .year {
-      @apply text-gray-100 font-medium text-base;
+      @apply text-gray-200 font-medium ;
     }
   }
 }
@@ -162,4 +159,20 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* Markup: <div class="ld-morph"></div> */
+
+/* Set --ink to your foreground colour (defaults to currentColor here). */
+:root { --ink: #7575f2; }
+
+/* 21 Morpho — morphing blob */
+.ld-morph {
+  width: 36px; height: 36px;
+  background: var(--ink);
+  animation: morph 2.4s ease-in-out infinite;
+}
+@keyframes morph {
+  0%, 100% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; transform: rotate(0); }
+  50%      { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(180deg); }
 }
