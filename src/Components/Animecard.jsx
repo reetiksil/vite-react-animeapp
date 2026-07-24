@@ -1,30 +1,31 @@
 import React from 'react'
 
-const Animecard = ({ anime: { title, score, year, rating, images } }) => {
-    const imageUrl = images?.jpg?.image_url || '/noposter.png';
+const Animecard = ({ anime }) => {
+    // Kitsu nests attributes inside anime.attributes
+    const { canonicalTitle, averageRating, startDate, ageRating, posterImage } = anime.attributes || {};
     
-    // Split the string at " (" and keep the first part. 
-    // "R - 17+ (violence & profanity)" becomes "R - 17+"
-    const cleanRating = rating ? rating.split(' (')[0] : 'N/A';
+    const imageUrl = posterImage?.large || posterImage?.medium || '/noposter.png';
+    const year = startDate ? startDate.split('-')[0] : 'N/A';
+    const cleanRating = ageRating || 'N/A';
 
     return (
         <div className='anime-card'>
-            <img src={imageUrl} alt={title} />
+            <img src={imageUrl} alt={canonicalTitle || 'Anime Poster'} />
             <div className='mt-4'>
-                <h3>{title}</h3>
+                <h3 className="line-clamp-2" title={canonicalTitle}>{canonicalTitle}</h3>
             </div>
+            
             <div className="content">
-                <div className="rating">
+                <div className="rating shrink-0">
                     <img src="/star.svg" alt="Star icon" />
-                    <p>{score ? score.toFixed(1) : 'N/A'}</p>
+                    <p>{averageRating ? (averageRating / 10).toFixed(1) : 'N/A'}</p>
                 </div>
                 
-                <span>•</span>
-                {/* Added 'truncate' to ensure text cuts off cleanly with ... if it ever gets too long */}
-                <p className="lang truncate">{cleanRating}</p>
+                <span className="shrink-0 text-gray-400">•</span>
+                <p className="lang truncate" title={cleanRating}>{cleanRating}</p>
                 
-                <span>•</span>
-                <p className="year">{year ? year : 'N/A'}</p>
+                <span className="shrink-0 text-gray-400">•</span>
+                <p className="year shrink-0">{year}</p>
             </div>
         </div>
     )

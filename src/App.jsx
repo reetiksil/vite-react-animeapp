@@ -4,14 +4,7 @@ import Loader from './Components/Loader';
 import Animecard from './Components/Animecard';
 import { useDebounce } from 'react-use';
 
-const API_BASE_URL = "https://api.jikan.moe/v4";
-
-const API_OPTIONS = {
-    method: 'GET',
-    headers: {
-        accept: 'application/json'
-    }
-}
+const API_BASE_URL = "https://kitsu.io/api/edge";
 
 const App = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,31 +12,38 @@ const App = () => {
     const [animeList, setAnimeList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    
+    const [page, setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(true);
 
-    // Fixed useDebounce syntax
     useDebounce(
-        () => setDebouncedSearchTerm(searchTerm), 
+        () => {
+            setDebouncedSearchTerm(searchTerm);
+            setPage(1);
+        }, 
         500, 
         [searchTerm]
     );
 
-    const fetchAnimes = async (query = '') => {
+    const fetchAnimes = async (query = '', currentPage = 1) => {
         setIsLoading(true);
         setErrorMessage('');
         try {
-            // Fixed the Jikan search parameter from 'query' to 'q'
+            const offset = (currentPage - 1) * 20;
+
             const endpoint = query
-                ? `${API_BASE_URL}/anime?q=${encodeURIComponent(query)}`
-                : `${API_BASE_URL}/anime`; 
+                ? `${API_BASE_URL}/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=20&page[offset]=${offset}`
+                : `${API_BASE_URL}/anime?sort=-userCount&page[limit]=20&page[offset]=${offset}`; 
                 
-            const response = await fetch(endpoint, API_OPTIONS); 
+            // Removed API_OPTIONS
+            const response = await fetch(endpoint); 
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             
             const data = await response.json();
+            
             setAnimeList(data.data || []);
+            setHasNextPage(data.links?.next ? true : false);
             
         } catch (error) {
            console.error(`Error fetching Anime: ${error}`);
@@ -54,8 +54,8 @@ const App = () => {
     }
 
     useEffect(() => {
-        fetchAnimes(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+        fetchAnimes(debouncedSearchTerm, page);
+    }, [debouncedSearchTerm, page]);
 
     return (
         <main>
@@ -74,12 +74,38 @@ const App = () => {
                         ) : errorMessage ? (
                             <p className='text-red-500'>{errorMessage}</p>
                         ) : (
-                            <ul>
-                                {animeList.map((anime) => (
-                                    
-                                    <Animecard key={anime.mal_id} anime={anime}/> 
-                                ))}
-                            </ul>
+                            <>
+                                <ul>
+                                    {animeList.map((anime) => (
+                                        // Changed key from mal_id to id
+                                        <Animecard key={anime.id} anime={anime}/> 
+                                    ))}
+                                </ul>
+
+                                {animeList.length > 0 && (
+                                    <div className="flex justify-center items-center gap-4 mt-8 pb-8">
+                                        <button 
+                                            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                                            disabled={page === 1}
+                                            className="px-4 py-2 bg-dark-100 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-200 transition-colors"
+                                        >
+                                            Previous
+                                        </button>
+                                        
+                                        <span className="text-gray-300 font-medium">
+                                            Page {page}
+                                        </span>
+
+                                        <button 
+                                            onClick={() => setPage((prev) => prev + 1)}
+                                            disabled={!hasNextPage}
+                                            className="px-4 py-2 bg-dark-100 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-200 transition-colors"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </section>
                 </div>

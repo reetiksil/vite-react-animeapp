@@ -117,7 +117,7 @@
     }
 
     & .content {
-      @apply mt-2 flex flex-row items-center flex-wrap gap-1;
+      @apply mt-2 flex flex-row items-center overflow-hidden gap-1;
     }
 
     & .rating {
@@ -129,15 +129,15 @@
     }
 
     & .rating p {
-      @apply font-bold text-base text-white;
+      @apply font-bold text-sm text-white;
     }
 
     & .content span {
-      @apply text-sm text-gray-200;
+      @apply text-xs text-gray-200;
     }
 
     & .content .year {
-      @apply text-gray-200 font-medium ;
+      @apply text-gray-200 text-sm font-medium ;
     }
   }
 }
