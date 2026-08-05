@@ -12,7 +12,7 @@ const getPlatformInfo = (url) => {
     if (urlLower.includes('amazon') || urlLower.includes('prime')) return { name: 'Prime Video', color: 'bg-[#00A8E1]/10 text-[#00A8E1] border-[#00A8E1]/20 hover:bg-[#00A8E1]/20', icon: '/prime.svg' };
 
     // Other Major Players
-    if (urlLower.includes('hidive')) return { name: 'HIDIVE', color: 'bg-[#00AEEF]/10 text-[#00AEEF] border-[#00AEEF]/20 hover:bg-[#00AEEF]/20', icon: '/hidive.svg' };
+    if (urlLower.includes('hidive')) return { name: 'HIDIVE', color: 'bg-[#00AEEF]/10 text-[#00AEEF] border-[#00AEEF]/20 hover:bg-[#00AEEF]/20', icon: '/hidive.png' };
     if (urlLower.includes('disney')) return { name: 'Disney+', color: 'bg-[#113CCF]/10 text-[#7196FF] border-[#113CCF]/40 hover:bg-[#113CCF]/30', icon: '/disney.svg' };
     if (urlLower.includes('funimation')) return { name: 'Funimation', color: 'bg-[#5B2896]/10 text-[#A66CFB] border-[#5B2896]/30 hover:bg-[#5B2896]/30', icon: '/funimation.svg' };
     if (urlLower.includes('tubi')) return { name: 'Tubi', color: 'bg-[#F26422]/10 text-[#F26422] border-[#F26422]/20 hover:bg-[#F26422]/20', icon: '/tubi.svg' };
@@ -26,7 +26,7 @@ const getPlatformInfo = (url) => {
     return { name: 'Watch Here', color: 'bg-light-100/10 text-light-100 border-light-100/20 hover:bg-light-100/20', icon: '/link.svg' };
 };
 
-const Animecard = ({ anime }) => {
+const Animecard = ({ anime, onGenreClick }) => {
     // UI States
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -248,9 +248,17 @@ const Animecard = ({ anime }) => {
                                             <div className="h-8 w-32 bg-light-100/5 rounded-full animate-pulse"></div>
                                         ) : (
                                             genres.map((genre, index) => (
-                                                <span key={index} className="px-3 py-1 bg-[#7575f2]/10 text-[#cecefb] border border-[#7575f2]/30 rounded-full text-xs font-bold uppercase tracking-wider">
+                                                <button 
+                                                    key={index} 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent the modal overlay from getting confused
+                                                        toggleExpand(); // Close the modal
+                                                        if(onGenreClick) onGenreClick(genre); // Trigger the search in App.jsx
+                                                    }}
+                                                    className="px-3 py-1 bg-[#7575f2]/10 text-[#cecefb] border border-[#7575f2]/30 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#7575f2]/20 hover:border-[#7575f2]/60 transition-colors cursor-pointer"
+                                                >
                                                     {genre}
-                                                </span>
+                                                </button>
                                             ))
                                         )}
                                     </div>
