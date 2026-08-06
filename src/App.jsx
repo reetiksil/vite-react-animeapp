@@ -115,12 +115,18 @@ const App = () => {
     // 2. PENDING FILTERS
     const [pendingFilters, setPendingFilters] = useState(activeFilters);
 
+    // --- RECOMMENDATION ENGINE STATE ---
+    const [recommendations, setRecommendations] = useState(() => {
+        const saved = localStorage.getItem('animeRecommendations');
+        return saved ? JSON.parse(saved) : [];
+    });
+
     useDebounce(
         () => {
             setDebouncedSearchTerm(searchTerm);
             setPage(1); 
         }, 
-        500, 
+        1000, 
         [searchTerm]
     );
 
@@ -186,6 +192,37 @@ const App = () => {
         setPage(1);
     };
 
+    // --- TRACKING ALGORITHM ---
+    const trackValidSearch = (results, query) => {
+        // Only track if it was an actual text search and it returned valid data
+        if (!query || results.length === 0) return;
+
+        const topMatch = results[0]; // Grab the closest match to their search
+
+        setRecommendations(prev => {
+            let updatedTracker = [...prev];
+            const existingIndex = updatedTracker.findIndex(item => item.animeData.id === topMatch.id);
+
+            if (existingIndex >= 0) {
+                // If they searched this before, increase its rank score
+                updatedTracker[existingIndex].score += 1;
+            } else {
+                // If it's a new search, add it to the tracker
+                updatedTracker.push({
+                    score: 1,
+                    animeData: topMatch // Store the full object so we can use its poster and title
+                });
+            }
+
+            // Sort by highest score first, and keep only the top 10
+            updatedTracker.sort((a, b) => b.score - a.score);
+            const topRecommendations = updatedTracker.slice(0, 10);
+
+            // Save to browser memory
+            localStorage.setItem('animeRecommendations', JSON.stringify(topRecommendations));
+            return topRecommendations;
+        });
+    };
     // --- API ENGINE ---
     const fetchAnimes = async (query, currentPage, filters) => {
         setIsLoading(true);
@@ -207,6 +244,7 @@ const App = () => {
             const data = await response.json();
             setAnimeList(data.data || []);
             setHasNextPage(data.links?.next ? true : false);
+            
         } catch (error) {
             console.error(`Error fetching Anime: ${error}`);
             setErrorMessage('Error fetching anime. Please try again later.');
@@ -215,10 +253,22 @@ const App = () => {
         }
     };
 
-    useEffect(() => {
+   useEffect(() => {
         fetchAnimes(debouncedSearchTerm, page, activeFilters);
     }, [debouncedSearchTerm, page, activeFilters]);
 
+    // --- NEW: DEDICATED TRACKING DEBOUNCER ---
+    // Waits 2 full seconds after the results load and the user stops typing
+    useDebounce(
+        () => {
+            // Only track if there is an active search and valid results are on screen
+            if (debouncedSearchTerm && animeList.length > 0) {
+                trackValidSearch(animeList, debouncedSearchTerm);
+            }
+        }, 
+        2000, // 2000ms (2 seconds) delay
+        [debouncedSearchTerm, animeList]
+    );
     const hasActiveFilters = activeFilters.status || activeFilters.subtype || activeFilters.ageRating || activeFilters.genres.length > 0;
 
     // --- DYNAMIC HEADING LOGIC ---
@@ -261,7 +311,42 @@ const App = () => {
                         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                     </header>
                     
-                    <section className='all-animes'>
+                    <section className='all-animes mt-12 sm:mt-16'>
+                        {/* ---------- RECOMMENDATIONS SECTION ---------- */}
+                        {recommendations.length > 0 && !debouncedSearchTerm && (
+                            <div className="mb-12 animate-fade-in w-full">
+                                <div className="flex items-center gap-3 mb-4 px-2">
+                                    <h2 className="mb-0 text-xl sm:text-2xl font-bold text-white">Recommended For You</h2>
+                                </div>
+                                
+                                <ul className="flex flex-row overflow-x-auto gap-5 sm:gap-6 px-2 pb-6 pt-2 hide-scrollbar w-full">
+                                    {recommendations.map((rec) => (
+                                        <li 
+                                            key={`rec-${rec.animeData.id}`} 
+                                            onClick={() => setSearchTerm(rec.animeData.attributes.canonicalTitle || rec.animeData.attributes.titles.en)}
+                                            className="flex flex-col gap-3 min-w-[130px] max-w-[130px] sm:min-w-[160px] sm:max-w-[160px] cursor-pointer group shrink-0"
+                                        >
+                                            {/* Poster Container with Overflow Hidden for the Zoom Effect */}
+                                            <div className="w-full aspect-[2/3] overflow-hidden rounded-xl shadow-lg shadow-black/40 bg-dark-100">
+                                                <img 
+                                                    src={rec.animeData.attributes.posterImage?.small || './hero.png'} 
+                                                    alt={rec.animeData.attributes.canonicalTitle}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" 
+                                                />
+                                            </div>
+                                            
+                                            {/* Title */}
+                                            <span className="text-gray-200 text-sm font-bold line-clamp-2 group-hover:text-[#7575f2] transition-colors">
+                                                {rec.animeData.attributes.canonicalTitle || rec.animeData.attributes.titles.en || "Unknown Title"}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                
+                                <div className="w-full h-px bg-light-100/10 mt-6 mb-8"></div>
+                            </div>
+                        )}
+                        {/* ---------- END RECOMMENDATIONS ---------- */}
                         {/* THE TRACKED CONTAINER REF GOES HERE */}
                         <div className="flex flex-col mb-8 gap-4 w-full relative" ref={filterContainerRef}>
                             

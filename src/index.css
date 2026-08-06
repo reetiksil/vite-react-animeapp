@@ -34,6 +34,7 @@
   h2 {
     @apply text-2xl font-bold text-white sm:text-3xl;
   }
+  
   p {
     @apply text-xs font-extralight text-white sm:text-base text-center leading-3 m-4;
   }
@@ -60,25 +61,7 @@
     @apply px-5 py-12 xs:p-10 max-w-7xl mx-auto flex flex-col relative z-10;
   }
 
-  .trending {
-    @apply mt-20;
 
-    & ul {
-      @apply flex flex-row overflow-y-auto gap-5 -mt-10 w-full hide-scrollbar;
-    }
-
-    & ul li {
-      @apply min-w-[230px] flex flex-row items-center;
-    }
-
-    & ul li p {
-      @apply fancy-text mt-[22px] text-nowrap;
-    }
-
-    & ul li img {
-      @apply w-[127px] h-[163px] rounded-lg object-cover -ml-3.5;
-    }
-  }
 
   .search {
     @apply w-full bg-light-100/5 px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto;
@@ -97,7 +80,7 @@
   }
 
   .all-animes {
-    margin-top: 2%; 
+    /* Removed margin-top: 2% to prevent layout clashing */
     @apply space-y-9;
 
     & ul {
@@ -113,7 +96,7 @@
     }
 
     & h3 {
-      @apply text-white font-bold text-base line-clamp-1;
+      @apply text-white font-bold text-base line-clamp-1 mt-3;
     }
 
     & .content {
@@ -137,7 +120,7 @@
     }
 
     & .content .year {
-      @apply text-gray-200 text-sm font-medium ;
+      @apply text-gray-200 text-sm font-medium;
     }
   }
 }
@@ -147,9 +130,11 @@
 }
 
 @utility fancy-text {
-  -webkit-text-stroke: 5px rgba(206, 206, 251, 0.5);
-  font-size: 190px;
+  /* Slightly tweaked size and stroke for better mobile rendering */
+  -webkit-text-stroke: 4px rgba(206, 206, 251, 0.4);
+  font-size: 160px;
   font-family: "Bebas Neue", sans-serif;
+  font-weight: bold;
 }
 
 @utility hide-scrollbar {
@@ -161,20 +146,16 @@
   }
 }
 
-/* Markup: <div class="ld-morph"></div> */
-
-/* Set --ink to your foreground colour (defaults to currentColor here). */
+/* Morphing Loader */
 :root { --ink: #7575f2; }
 
-/* 21 Morpho — morphing blob */
 .ld-morph {
   width: 36px; height: 36px;
   background: var(--ink);
   animation: morph 2.4s ease-in-out infinite;
 }
+
 @keyframes morph {
   0%, 100% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; transform: rotate(0); }
   50%      { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(180deg); }
 }
-
-
